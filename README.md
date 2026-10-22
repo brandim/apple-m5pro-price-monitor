@@ -1,6 +1,6 @@
-# Apple M5 Pro 价格监控
+# Apple MacBook Pro M5 价格监控
 
-每天北京时间 09:00 用 **Python 3.12 + Playwright Chromium** 打开 [Apple 中国目标商品页](https://www.apple.com.cn/shop/buy-mac/macbook-pro/14-inch-space-black-standard-display-apple-m5-pro-chip-15-core-cpu-16-core-gpu-24gb-memory-1tb-storage)，核对 14 英寸、M5 Pro 15 核 CPU / 16 核 GPU、深空黑色、标准显示屏、24GB 内存、1TB SSD、70W 适配器、带触控 ID 的中文（拼音）键盘。只从渲染后的购买摘要内标记为 `fullprice` 的组件读取人民币一次性售价。不会采用起售价、分期、优惠、翻新、折抵或 AppleCare+ 价格。
+每天北京时间 09:00 用 **Python 3.12 + Playwright Chromium** 打开 [Apple 中国目标商品页](https://www.apple.com.cn/shop/buy-mac/macbook-pro/14-inch-space-black-standard-display-apple-m5-chip-10-core-cpu-10-core-gpu-24gb-memory-1tb-storage)，核对 14 英寸、M5 10 核 CPU / 10 核 GPU、深空黑色、标准显示屏、24GB 内存、1TB SSD、70W 适配器、带触控 ID 的中文（拼音）键盘。只从渲染后的购买摘要内标记为 `fullprice` 的组件读取人民币一次性售价。不会采用起售价、分期、优惠、翻新、折抵或 AppleCare+ 价格。
 
 **未经真实浏览器验证，不提供价格。** 每次运行生成 `evidence/<北京时间>/result.json`，只有全部核对成功才是 `verified: true`，也只有成功记录才追加到 `price_history.jsonl`。
 
@@ -9,7 +9,7 @@
 - `price_check.py`：访问、选配核对、价格提取、证据保存、历史比较。
 - `test_price_check.py`：防止误收起售价、分期或未确认的键盘。
 - `requirements.txt`：固定 Playwright 版本。
-- `price_history.jsonl`：跨天保存已验证价格，初始为空。
+- `price_history.jsonl`：跨天保存已验证价格；比较上一条时只使用相同商品 URL 的记录，旧 M5 Pro 记录予以保留。
 - `.github/workflows/price-check.yml`：定时及手动云端运行。
 
 ## 本地运行
@@ -28,19 +28,9 @@ Windows 请将 `.venv/bin/python` 换成 `.venv\\Scripts\\python.exe`。无图�
 
 ## 部署到 GitHub
 
-1. 在 GitHub 创建一个空的私有或公开仓库，建议同名 `apple-m5pro-price-monitor`，不要勾选自动创建 README。
-2. 在本项目目录执行以下命令，把 `<你的仓库地址>` 替换成 GitHub 提供的 HTTPS 或 SSH 地址：
-
-   ```bash
-   git init -b main
-   git add .
-   git commit -m "Create Apple M5 Pro price monitor"
-   git remote add origin <你的仓库地址>
-   git push -u origin main
-   ```
-
-3. 在仓库 **Settings → Actions → General → Workflow permissions** 选择 **Read and write permissions**，使成功记录能提交到 `price_history.jsonl`。如果默认分支受保护，允许 GitHub Actions 写入，或改用有权限的持久存储。
-4. 打开 **Actions → Apple MacBook Pro price check → Run workflow** 手动实测。检查运行日志和 `apple-price-evidence-<运行编号>` 附件中的 `result.json`、截图、页面结构及网络日志。确认 `verified: true` 后再依赖定时运行。
+1. 将修改推送到已配置的 GitHub 仓库。
+2. 在仓库 **Settings → Actions → General → Workflow permissions** 选择 **Read and write permissions**，使成功记录能提交到 `price_history.jsonl`。如果默认分支受保护，允许 GitHub Actions 写入，或改用有权限的持久存储。
+3. 打开 **Actions → Apple MacBook Pro M5 price check → Run workflow** 手动实测。检查运行日志和 `apple-price-evidence-<运行编号>` 附件中的 `result.json`、截图、页面结构及网络日志。确认 `verified: true` 后再依赖定时运行。
 
 定时表达式是 UTC `0 1 * * *`，对应全年北京时间 09:00；中国大陆不实行夏令时。GitHub 的定时任务可能在高负载时延迟启动，实际查询时间以 `result.json` 为准。电脑无需开机。
 
@@ -48,7 +38,7 @@ Windows 请将 `.venv/bin/python` 换成 `.venv\\Scripts\\python.exe`。无图�
 
 每次运行尽可能保存完整页面截图 `page.png`、`page.html`、DOM/选项 `dom.json`、`configuration_summary.txt`、`network.jsonl`、`errors.log`、`result.json`。Actions 上传证据和运行输出 `run.log`，保留 90 天。浏览器在启动前失败时无法截图，`result.json` 和日志会说明原因。
 
-`price_history.jsonl` 由成功的 Actions 运行提交到仓库，保存历次已验证售价及相对上一条成功记录的差额。失败运行不会覆盖历史价格，也不会记录猜测值。
+`price_history.jsonl` 由成功的 Actions 运行提交到仓库，保存历次已验证售价及相对同一商品上一条成功记录的差额。失败运行不会覆盖历史价格，也不会记录猜测值。
 
 ## 故障排查
 

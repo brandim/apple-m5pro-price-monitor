@@ -13,8 +13,8 @@ from zoneinfo import ZoneInfo
 
 URL = (
     "https://www.apple.com.cn/shop/buy-mac/macbook-pro/"
-    "14-inch-space-black-standard-display-apple-m5-pro-chip-15-core-cpu-"
-    "16-core-gpu-24gb-memory-1tb-storage"
+    "14-inch-space-black-standard-display-apple-m5-chip-10-core-cpu-"
+    "10-core-gpu-24gb-memory-1tb-storage"
 )
 ROOT = Path(__file__).resolve().parent
 HISTORY = ROOT / "price_history.jsonl"
@@ -22,9 +22,9 @@ SHANGHAI = ZoneInfo("Asia/Shanghai")
 PRICE_RE = re.compile(r"(?:[¥￥]\s*|RMB\s*)([\d,]+)(?:\.00)?")
 EXPECTED = {
     "size": r"14\s*(?:英寸|吋|inch)",
-    "chip": r"M5\s*Pro",
-    "cpu": r"15\s*核\s*(?:CPU|中央处理器)|15.core\s*CPU",
-    "gpu": r"16\s*核\s*(?:GPU|图形处理器)|16.core\s*GPU",
+    "chip": r"M5\s*(?:芯片|chip)",
+    "cpu": r"10\s*核\s*(?:CPU|中央处理器)|10.core\s*CPU",
+    "gpu": r"10\s*核\s*(?:GPU|图形处理器)|10.core\s*GPU",
     "color": r"深空黑|Space Black",
     "display": r"标准显示屏|Standard Display",
     "memory": r"24\s*GB|24GB",
@@ -44,7 +44,7 @@ def history_previous() -> dict | None:
     for line in reversed(HISTORY.read_text(encoding="utf-8").splitlines()):
         if line.strip():
             item = json.loads(line)
-            if item.get("verified") is True:
+            if item.get("verified") is True and item.get("url") == URL:
                 return item
     return None
 
@@ -152,9 +152,9 @@ def verify(dom: dict, keyboard: dict) -> tuple[dict, int | None, str | None]:
         for key, (expected, field) in expected_state.items()
     }
     processor = selections.get("PROCESSOR") or {}
-    state_checks["PROCESSOR"] = (processor.get("dimensionChip") == "m5pro"
-                                  and str(processor.get("cpuCoreCount")) == "15"
-                                  and str(processor.get("gpuCoreCount")) == "16")
+    state_checks["PROCESSOR"] = (processor.get("dimensionChip") == "m5"
+                                  and str(processor.get("cpuCoreCount")) == "10"
+                                  and str(processor.get("gpuCoreCount")) == "10")
     state_checks["NO_PREINSTALLED_SOFTWARE"] = (
         selections.get("LOGIC_PRO", {}).get("dimensionValue") == "none"
         and selections.get("FINAL_CUT_PRO", {}).get("dimensionValue") == "none")

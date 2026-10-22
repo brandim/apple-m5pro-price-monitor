@@ -1,4 +1,4 @@
-name: Apple MacBook Pro price check
+name: Apple MacBook Pro M5 price check
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: apple-macbook-price-history
+  group: apple-macbook-m5-price-history
   cancel-in-progress: false
 
 jobs:
