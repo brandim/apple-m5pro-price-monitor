@@ -23,8 +23,8 @@ PRICE_RE = re.compile(r"(?:[¥￥]\s*|RMB\s*)([\d,]+)(?:\.00)?")
 EXPECTED = {
     "size": r"14\s*(?:英寸|吋|inch)",
     "chip": r"M5\s*Pro",
-    "cpu": r"15\s*核\s*CPU|15.core\s*CPU",
-    "gpu": r"16\s*核\s*GPU|16.core\s*GPU",
+    "cpu": r"15\s*核\s*(?:CPU|中央处理器)|15.core\s*CPU",
+    "gpu": r"16\s*核\s*(?:GPU|图形处理器)|16.core\s*GPU",
     "color": r"深空黑|Space Black",
     "display": r"标准显示屏|Standard Display",
     "memory": r"24\s*GB|24GB",
@@ -160,16 +160,18 @@ def verify(dom: dict, keyboard: dict) -> tuple[dict, int | None, str | None]:
         and selections.get("FINAL_CUT_PRO", {}).get("dimensionValue") == "none")
     # The site's selected product state verifies every configurable dimension.
     # Prices are read only from the rendered purchase-summary component.
-    eligible = [block for block in summaries if block.get("priceNodes")]
     summary_field_checks = [
         {key: bool(re.search(pattern, block["text"], re.I)) for key, pattern in EXPECTED.items()}
         for block in summaries
     ]
+    eligible = [block for block, fields in zip(summaries, summary_field_checks)
+                if block.get("priceNodes") and all(fields.values())]
     checks = {
         "selected_keyboard": keyboard["selected"] and state_checks["KEYBOARD_LANGUAGE"],
         "apple_selected_state": state_checks,
         "all_selected_state": all(state_checks.values()),
         "purchase_summary_with_fullprice": bool(eligible),
+        "summary_matches_configuration": any(all(fields.values()) for fields in summary_field_checks),
         "summary_field_checks": summary_field_checks,
         "keyboard_has_touch_id": bool(re.search(r"触控\s*ID|Touch\s*ID", selected, re.I))
         or bool(re.search(r"触控\s*ID|Touch\s*ID", dom.get("bodyText", ""), re.I)),
@@ -219,10 +221,7 @@ def main() -> int:
 
         with sync_playwright() as playwright:
             executable = os.environ.get("CHROMIUM_EXECUTABLE")
-            browser = playwright.chromium.launch(
-                headless=True, executable_path=executable,
-                args=["--disable-crash-reporter", f"--crash-dumps-dir={out}"],
-            )
+            browser = playwright.chromium.launch(headless=True, executable_path=executable)
             result["browser_started"] = True
             result["browser_executable_override"] = executable
             context = browser.new_context(locale="zh-CN", timezone_id="Asia/Shanghai",

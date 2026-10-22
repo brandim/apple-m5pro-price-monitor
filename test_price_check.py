@@ -67,6 +67,14 @@ class VerifyTest(unittest.TestCase):
         self.assertIsNone(price)
         self.assertIsNotNone(error)
 
+    def test_rejects_price_outside_matching_configuration_summary(self):
+        self.dom["summary"][0]["text"] = self.summary.replace("70W USB-C", "96W USB-C")
+        checks, price, error = verify(self.dom, self.keyboard)
+        self.assertFalse(checks["summary_matches_configuration"])
+        self.assertFalse(checks["purchase_summary_with_fullprice"])
+        self.assertIsNone(price)
+        self.assertIsNotNone(error)
+
     def test_rejects_missing_touch_id_evidence(self):
         self.dom["bodyText"] = self.summary.replace("带触控 ID 的", "")
         checks, price, error = verify(self.dom, self.keyboard)
