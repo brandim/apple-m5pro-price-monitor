@@ -28,7 +28,17 @@ jobs:
       - name: Check official configured price
         id: price
         shell: bash
+        env:
+          PRICE_RESULT_POINTER: ${{ runner.temp }}/apple-price-result-path.txt
         run: python price_check.py 2>&1 | tee run.log
+      - name: Build public latest result
+        id: publish
+        if: always()
+        run: python publish_latest.py build --result-pointer "$RUNNER_TEMP/apple-price-result-path.txt"
+      - name: Validate public JSON and browser evidence
+        id: validate
+        if: always() && steps.publish.outcome == 'success'
+        run: python publish_latest.py validate --result-pointer "$RUNNER_TEMP/apple-price-result-path.txt"
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -37,15 +47,16 @@ jobs:
           path: |
             evidence/
             run.log
+            latest-price.json
           if-no-files-found: warn
           retention-days: 90
-      - name: Persist verified history
-        if: steps.price.outcome == 'success'
+      - name: Publish latest result and verified history
+        if: always() && steps.validate.outcome == 'success' && github.ref == 'refs/heads/main'
         run: |
-          if ! git diff --quiet -- price_history.jsonl; then
+          if ! git diff --quiet -- latest-price.json price_history.jsonl; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add price_history.jsonl
-            git commit -m "Record verified MacBook Pro price"
+            git add latest-price.json price_history.jsonl
+            git commit -m "Publish latest MacBook Pro price status"
             git push origin HEAD:${{ github.ref_name }}
           fi

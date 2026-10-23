@@ -1,0 +1,23 @@
+{
+  "product": "14 英寸 MacBook Pro (M5)",
+  "configuration": {
+    "size": "14 英寸",
+    "chip": "Apple M5",
+    "cpu_cores": 10,
+    "gpu_cores": 10,
+    "color": "深空黑色",
+    "display": "标准显示屏",
+    "memory_gb": 24,
+    "storage_tb": 1,
+    "power_adapter": "70W USB-C",
+    "keyboard": "中文（拼音）",
+    "market": "中国大陆普通零售"
+  },
+  "verified": true,
+  "price_cny": 17499,
+  "checked_at": "2026-10-23T09:09:08.071094+08:00",
+  "previous_verified_price_cny": 17499,
+  "price_change_cny": 0,
+  "source_url": "https://www.apple.com.cn/shop/buy-mac/macbook-pro/14-inch-space-black-standard-display-apple-m5-chip-10-core-cpu-10-core-gpu-24gb-memory-1tb-storage",
+  "error": null
+}

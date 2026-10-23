@@ -202,6 +202,9 @@ def verify(dom: dict, keyboard: dict) -> tuple[dict, int | None, str | None]:
 
 def main() -> int:
     now = datetime.now(SHANGHAI)
+    pointer = os.environ.get("PRICE_RESULT_POINTER")
+    if pointer:
+        Path(pointer).write_text("", encoding="utf-8")
     out = ROOT / "evidence" / now.strftime("%Y%m%dT%H%M%S%z")
     out.mkdir(parents=True, exist_ok=True)
     result = {"queried_at": now.isoformat(), "url": URL, "verified": False,
@@ -285,13 +288,8 @@ def main() -> int:
     result["price_change_cny"] = (result["price_cny"] - previous["price_cny"]
                                   if result["verified"] and previous else None)
     write_json(out / "result.json", result)
-    if result["verified"]:
-        record = {"queried_at": result["queried_at"], "url": URL, "verified": True,
-                  "currency": "CNY", "price_cny": result["price_cny"],
-                  "previous_verified_price_cny": result["previous_verified_price_cny"],
-                  "price_change_cny": result["price_change_cny"]}
-        with HISTORY.open("a", encoding="utf-8") as stream:
-            stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+    if pointer:
+        Path(pointer).write_text(str(out / "result.json") + "\n", encoding="utf-8")
     print(json.dumps({"verified": result["verified"], "price_cny": result["price_cny"],
                       "error": result["error"], "evidence": str(out)}, ensure_ascii=False))
     return 0 if result["verified"] else 1

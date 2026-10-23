@@ -5,3 +5,4 @@ __pycache__/
 .browsers/
 evidence/
 run.log
+.price-result-path.txt
